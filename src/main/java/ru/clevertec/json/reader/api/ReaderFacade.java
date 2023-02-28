@@ -1,6 +1,6 @@
 package ru.clevertec.json.reader.api;
 
-public interface JsonReader {
+public interface ReaderFacade {
     /**
      * Read a json and create object
      * @param json Object as JSON

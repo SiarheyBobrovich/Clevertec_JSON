@@ -12,7 +12,7 @@ class ObjectParserTest {
     private ObjectParser parser;
     @BeforeEach
     void setUp() {
-        parser = new ObjectParser();
+        parser = ObjectParser.getInstance();
     }
 
     @Test

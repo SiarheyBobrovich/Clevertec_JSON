@@ -2,7 +2,6 @@ package ru.clevertec.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,6 +11,8 @@ import ru.clevertec.json.util.Primitive;
 
 import java.util.Random;
 import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.*;
 
 class JsonMapperImplTest {
     private ObjectMapper mapper;
@@ -31,7 +32,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             Integer actual = mapper.readValue(actualJson, Integer.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -41,7 +42,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             byte actual = mapper.readValue(actualJson, Byte.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -51,7 +52,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             short actual = mapper.readValue(actualJson, Short.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -63,7 +64,7 @@ class JsonMapperImplTest {
                         String expected = jsonMapper.writeObjectAsString(character);
                         try {
                             char actual = mapper.readValue(expected, Character.class);
-                            Assertions.assertThat(character)
+                            assertThat(character)
                                     .isEqualTo(actual);
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
@@ -77,7 +78,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             int actual = mapper.readValue(actualJson, Integer.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -87,7 +88,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             long actual = mapper.readValue(actualJson, Long.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -97,7 +98,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             float actual = mapper.readValue(actualJson, Float.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -107,7 +108,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             double actual = mapper.readValue(actualJson, Double.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -117,7 +118,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             String actual = mapper.readValue(actualJson, String.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -127,7 +128,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             String[] actual = mapper.readValue(actualJson, String[].class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -137,7 +138,7 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             String[][] actual = mapper.readValue(actualJson, String[][].class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -149,7 +150,7 @@ class JsonMapperImplTest {
 
             Primitive actual = mapper.readValue(actualJson, Primitive.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -160,17 +161,11 @@ class JsonMapperImplTest {
             String actualJson = jsonMapper.writeObjectAsString(expected);
             MultiObject actual = mapper.readValue(actualJson, MultiObject.class);
 
-            System.out.println("P: " + actualJson);
-            System.out.println("P: " + mapper.writeValueAsString(expected));
-
-            Assertions.assertThat(expected)
+            assertThat(expected)
                     .isEqualTo(actual);
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////
     @Nested
     class Read {
 
@@ -180,7 +175,7 @@ class JsonMapperImplTest {
             String actualJson = mapper.writeValueAsString(expected);
             String actual = jsonMapper.readStringToObject(actualJson, String.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -190,7 +185,7 @@ class JsonMapperImplTest {
             String actualJson = mapper.writeValueAsString(expected);
             String[] actual = jsonMapper.readStringToObject(actualJson, String[].class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -200,7 +195,7 @@ class JsonMapperImplTest {
             String actualJson = mapper.writeValueAsString(expected);
             String[][] actual = jsonMapper.readStringToObject(actualJson, String[][].class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -219,7 +214,7 @@ class JsonMapperImplTest {
             String actualJson = mapper.writeValueAsString(expected);
             Integer[][][] actual = jsonMapper.readStringToObject(actualJson, Integer[][][].class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
 
@@ -229,7 +224,7 @@ class JsonMapperImplTest {
             String actualJson = mapper.writeValueAsString(expected);
             Primitive actual = jsonMapper.readStringToObject(actualJson, Primitive.class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
         @Test
@@ -238,7 +233,7 @@ class JsonMapperImplTest {
             String actualJson = mapper.writeValueAsString(expected);
             Primitive[] actual = jsonMapper.readStringToObject(actualJson, Primitive[].class);
 
-            Assertions.assertThat(actual)
+            assertThat(actual)
                     .isEqualTo(expected);
         }
     }

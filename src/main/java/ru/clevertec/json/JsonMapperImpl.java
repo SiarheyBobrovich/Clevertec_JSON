@@ -1,19 +1,19 @@
 package ru.clevertec.json;
 
 import ru.clevertec.json.api.JsonMapper;
-import ru.clevertec.json.reader.JsonReaderImpl;
-import ru.clevertec.json.reader.api.JsonReader;
+import ru.clevertec.json.reader.ReaderFacadeImpl;
+import ru.clevertec.json.reader.api.ReaderFacade;
 import ru.clevertec.json.writer.JsonWriterImpl;
 import ru.clevertec.json.writer.api.JsonWriter;
 
 public class JsonMapperImpl implements JsonMapper {
 
     private final JsonWriter jsonWriter;
-    private final JsonReader jsonReader;
+    private final ReaderFacade readerFacade;
 
     public JsonMapperImpl() {
         jsonWriter = new JsonWriterImpl();
-        jsonReader = new JsonReaderImpl();
+        readerFacade = new ReaderFacadeImpl();
     }
 
     @Override
@@ -23,6 +23,6 @@ public class JsonMapperImpl implements JsonMapper {
 
     @Override
     public <T> T readStringToObject(String json, Class<T> obj) {
-        return jsonReader.readStringToObject(json, obj);
+        return readerFacade.readStringToObject(json, obj);
     }
 }

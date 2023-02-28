@@ -8,7 +8,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ObjectParser {
-    private final JsonStringMapper mapper = JsonStringMapper.getInstance();
+    private final JsonStringMapper mapper;
+
+    private ObjectParser() {
+        this.mapper = JsonStringMapper.getInstance();
+    }
+
+    private static final class InstanceHolder {
+        private static final ObjectParser instance = new ObjectParser();
+    }
+    public static ObjectParser getInstance() {
+        return InstanceHolder.instance;
+    }
+
+    /**
+     * Parsing json and return field name = value map
+     * @param json object as JSON
+     * @return All fields with value
+     */
     public Map<String, String> parseJson(String json) {
         if (!(json.startsWith("{") && json.endsWith("}"))) {
             throw new JsonParseException("not an object");

@@ -2,14 +2,12 @@ package ru.clevertec.json.reader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 class CharacterReaderTest {
 
@@ -17,16 +15,16 @@ class CharacterReaderTest {
     private ObjectMapper mapper;
     @BeforeEach
     void setUp() {
-        characterReader = new CharacterReader();
+        characterReader = CharacterReader.getInstance();
         mapper = new ObjectMapper();
     }
     @Test
     void checkWriteObjectAsStringNull() throws JsonProcessingException {
         Character expected = null;
         String actualJson = mapper.writeValueAsString(expected);
-        Character actual = characterReader.readStringToObject(actualJson, Character.class);
+        Character actual = characterReader.getObject(actualJson, Character.class, null);
 
-        Assertions.assertThat(actual)
+        assertThat(actual)
                 .isEqualTo(expected);
     }
     @Test
@@ -37,9 +35,9 @@ class CharacterReaderTest {
                         .toList();
         for (Character character: characterList) {
             String expected = mapper.writeValueAsString(character);
-            Character actual = characterReader.readStringToObject(expected, Character.class);
+            Character actual = characterReader.getObject(expected, Character.class, null);
 
-            Assertions.assertThat(character)
+            assertThat(character)
                     .isEqualTo(actual);
         }
     }

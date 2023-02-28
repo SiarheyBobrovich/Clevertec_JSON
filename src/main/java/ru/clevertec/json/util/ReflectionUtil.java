@@ -5,9 +5,7 @@ import ru.clevertec.json.exception.JsonParseException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class ReflectionUtil {
@@ -19,19 +17,9 @@ public class ReflectionUtil {
      * @return result
      */
     public static boolean isNumber(Class<?> aClass) {
-        if (aClass == null) return false;
-        return aClass == byte.class ||
-                aClass == Byte.class ||
-                aClass == short.class ||
-                aClass == Short.class ||
-                aClass == int.class ||
-                aClass == Integer.class ||
-                aClass == long.class ||
-                aClass == Long.class ||
-                aClass == float.class ||
-                aClass == Float.class ||
-                aClass == double.class ||
-                aClass == Double.class;
+        return aClass != null &&
+                aClass.isPrimitive() && aClass != char.class ||
+                isClassInstanceOf(aClass, Number.class);
     }
 
     /**
@@ -89,9 +77,12 @@ public class ReflectionUtil {
      * @return cClass instanceOf ofClass
      */
     public static boolean isClassInstanceOf(Class<?> cClass, Class<?> ofClass) {
-        if (cClass == null) return false;
-        return getAllInterfaces(cClass).stream()
-                .anyMatch(x -> x == ofClass);
+        if (cClass == ofClass) return true;
+        if (cClass == null || ofClass == null) return false;
+        Class<?> superclass = cClass.getSuperclass();
+        return isClassInstanceOf(superclass, ofClass) ||
+                getAllInterfaces(cClass).stream()
+                        .anyMatch(x -> x == ofClass);
     }
 
     /**
