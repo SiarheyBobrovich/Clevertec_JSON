@@ -1,14 +1,14 @@
 package ru.clevertec.json.reader;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.clevertec.json.JsonMapperImpl;
 import ru.clevertec.json.util.ObjectWithList;
+import ru.clevertec.json.util.ObjectWithMap;
 import ru.clevertec.json.util.Primitive;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
@@ -35,7 +35,7 @@ class ObjectReaderTest {
     }
 
     @Test
-    void checkGetObjectListOfSet() {
+    void checkGetObjectSet() {
         Set<Integer> set = Set.of(1, 2, 41, 523);
         ObjectWithList expected = ObjectWithList.builder().integerSet(set).build();
 
@@ -63,6 +63,39 @@ class ObjectReaderTest {
 
         String json = new JsonMapperImpl().writeObjectAsString(expected);
         ObjectWithList actual = objectReader.getObject(json, ObjectWithList.class, readerFacade);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void checkGetObjectMap() {
+        Map<String, Integer> map = Map.of("One", 1, "Two", 2);
+        ObjectWithMap expected = ObjectWithMap.builder()
+                .map(map)
+                .build();
+
+        String json = "{\"map\":{\"Two\":2,\"One\":1}}";
+        ObjectWithMap actual = objectReader.getObject(json, ObjectWithMap.class, readerFacade);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void checkGetObjectMapObjects() {
+        Primitive random1 = Primitive.random();
+        Primitive random2 = Primitive.random();
+        Map<Integer, Primitive> map = Map.of(
+                random1.getAnInt(), Primitive.random(),
+                random2.getAnInt(), Primitive.random());
+        ObjectWithMap expected = ObjectWithMap.builder()
+                .primitiveMap(map)
+                .build();
+
+        String json = new JsonMapperImpl().writeObjectAsString(expected);
+
+        System.out.println(json);
+
+        ObjectWithMap actual = objectReader.getObject(json, ObjectWithMap.class, readerFacade);
 
         assertThat(actual).isEqualTo(expected);
     }

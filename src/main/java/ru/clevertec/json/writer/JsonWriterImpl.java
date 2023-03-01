@@ -4,6 +4,7 @@ import ru.clevertec.json.util.ReflectionUtil;
 import ru.clevertec.json.writer.api.JsonWriter;
 import ru.clevertec.json.exception.JsonParseException;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,35 +14,40 @@ import java.util.stream.Collectors;
 public class JsonWriterImpl implements JsonWriter {
 
     @Override
-    public String writeObjectAsString(Object value) {
-        if (value == null) return "null";
-        final Class<?> valueClass = value.getClass();
+    public String writeObjectAsString(Object obj) {
+        if (obj == null) return "null";
+        final Class<?> objClass = obj.getClass();
         final String json;
 
-        if (ReflectionUtil.isNumber(value)) json  = String.valueOf(value);
-        else if (valueClass == Character.class) json = characterToString((char)value);
-        else if (valueClass == String.class) json = "\"" + value + "\"";
-        else if (valueClass.isArray()) json = arrayToString((Object[]) value);
-        else if (ReflectionUtil.isClassInstanceOf(valueClass, Collection.class)) json = arrayToString(((Collection<?>) value).toArray());
-        else if (ReflectionUtil.isClassInstanceOf(valueClass, Map.class)) json = mapToString((Map<?, ?>) value);
+        if (ReflectionUtil.isNumber(obj)) json  = String.valueOf(obj);
+        else if (objClass == Character.class) json = characterToString((char)obj);
+        else if (objClass == String.class) json = "\"" + obj + "\"";
+        else if (objClass.isArray()) json = arrayToString((Object[]) obj);
+        else if (ReflectionUtil.isClassInstanceOf(objClass, Collection.class)) json = arrayToString(((Collection<?>) obj).toArray());
+        else if (ReflectionUtil.isClassInstanceOf(objClass, Map.class)) json = mapToString((Map<?, ?>) obj);
         else json = "{" +
-                    ReflectionUtil.getAllDeclaredFields(valueClass).stream()
+                    ReflectionUtil.getAllDeclaredFields(objClass).stream()
                             .filter(f -> !Modifier.isStatic(f.getModifiers()))
                             .collect(Collectors.toMap(
                                     field -> "\"" + field.getName() + "\"",
                                     field -> {
                                         field.setAccessible(true);
-                                        try {
-                                            return writeObjectAsString(field.get(value));
-                                        } catch (IllegalAccessException e) {
-                                            throw new JsonParseException(e);
-                                        }
+                                        Object fieldValue = getFieldValue(field, obj);
+                                        return writeObjectAsString(fieldValue);
                                     }))
                             .entrySet().stream()
                             .map(entry -> entry.getKey() + ":" + entry.getValue())
                             .collect(Collectors.joining(","))
                     + "}";
         return json;
+    }
+
+    private Object getFieldValue(Field field, Object obj) {
+        try {
+            return field.get(obj);
+        } catch (IllegalAccessException e) {
+            throw new JsonParseException(e);
+        }
     }
 
     private String characterToString(char o) {
@@ -59,8 +65,18 @@ public class JsonWriterImpl implements JsonWriter {
     private String mapToString(Map<?, ?> map) {
         return "{" +
                 map.entrySet().stream()
-                        .map(entry -> this.writeObjectAsString(entry.getKey()) + ":" + this.writeObjectAsString(entry.getValue()))
-                        .collect(Collectors.joining(","))
+                        .map(entry -> {
+                            final Object key = entry.getKey();
+                            final boolean isNotNum = !ReflectionUtil.isNumber(key);
+                            String keyString = this.writeObjectAsString(key);
+                            String valueString = this.writeObjectAsString(entry.getValue());
+                            return new StringBuilder()
+                                    .append(keyString)
+                                    .insert(0, isNotNum ? "" : "\"")
+                                    .append(isNotNum ? "" : "\"")
+                                    .append(":")
+                                    .append(valueString).toString();
+                        }).collect(Collectors.joining(","))
                 + "}";
     }
 }

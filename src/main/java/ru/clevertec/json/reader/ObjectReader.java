@@ -8,8 +8,8 @@ import ru.clevertec.json.util.ReflectionUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
+
 import java.util.stream.Collectors;
 
 public class ObjectReader implements ClassReader {
@@ -25,28 +25,50 @@ public class ObjectReader implements ClassReader {
         if ("null".equals(json) || json == null) return null;
         final Object instance = ReflectionUtil.getInstance(obj);
         final Map<String, String> fieldsValue = parser.parseJson(json);
-
-        ReflectionUtil.getAllDeclaredFields(obj).stream()
+        final Map<Field, String> fields = ReflectionUtil.getAllDeclaredFields(obj).stream()
                 .filter(f -> fieldsValue.containsKey(f.getName()))
                 .map(f -> {
                     f.setAccessible(true);
                     return f;
                 })
-                .collect(Collectors.toMap(f -> f, f -> fieldsValue.get(f.getName())))
+                .collect(Collectors.toMap(
+                        f -> f,
+                        f -> fieldsValue.get(f.getName())));
+
+        fields.entrySet().stream()
+                .filter(e -> !"null".equals(e.getValue()))
+                .filter(e -> e.getKey().getGenericType() instanceof ParameterizedType)
+                .filter(e -> ReflectionUtil.isClassInstanceOf(e.getKey().getType(), Collection.class))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                 .forEach((key, value) -> {
                     final Class<?> fieldType = key.getType();
+                    final ParameterizedType genericType = (ParameterizedType)key.getGenericType();
                     final Object valueObj;
-                    try {
-                        if (!"null".equals(value) && key.getGenericType() instanceof ParameterizedType type) {
-                            valueObj = getCollection(fieldType, type, value, reader);
-                        }else {
-                            valueObj = reader.readStringToObject(value, key.getType());
-                        }
-                        key.set(instance, valueObj);
-                    } catch (IllegalAccessException ex) {
-                        throw new JsonParseException(ex);
-                    }
+                    valueObj = getCollection(fieldType, genericType, value, reader);
+                    setFieldObject(key, instance, valueObj);
                 });
+
+        fields.entrySet().stream()
+                .filter(e -> ReflectionUtil.isClassInstanceOf(e.getKey().getType(), Map.class))
+                .filter(e -> !"null".equals(e.getValue()))
+                .filter(e -> e.getKey().getGenericType() instanceof ParameterizedType)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                .forEach((key, value) -> {
+                    final ParameterizedType genericType = (ParameterizedType)key.getGenericType();
+                    final Object valueObj;
+                    valueObj = getMap(genericType, value, reader);
+                    setFieldObject(key, instance, valueObj);
+                });
+
+        fields.entrySet().stream()
+                .filter(e -> !(e.getKey().getGenericType() instanceof ParameterizedType))
+                .forEach(fieldJson -> {
+                    final Class<?> fieldType = fieldJson.getKey().getType();
+                    final String fieldJsonValue = fieldJson.getValue();
+                    final Object valueObj = reader.readStringToObject(fieldJsonValue, fieldType);
+                    setFieldObject(fieldJson.getKey(), instance, valueObj);
+            });
+
         return (T) instance;
     }
     @Override
@@ -58,7 +80,7 @@ public class ObjectReader implements ClassReader {
     private Collection<?> getCollection(Class<?> fieldType,
                                         ParameterizedType type,
                                         String json, ReaderFacade reader) {
-        final Class<?> actualTypeArgument = (Class<?>) type.getActualTypeArguments()[0];;
+        final Class<?> actualTypeArgument = (Class<?>) type.getActualTypeArguments()[0];
         final Collection<?> collection;
         Object[] array;
         if (ReflectionUtil.isClassInstanceOf(fieldType, List.class)) {
@@ -68,10 +90,38 @@ public class ObjectReader implements ClassReader {
             array = (Object[]) reader.readStringToObject(json, actualTypeArgument.arrayType());
             collection = Arrays.stream(array).collect(Collectors.toSet());
         }else {
-            throw new JsonParseException("Unsupported type" + fieldType.getName());
+            throw new JsonParseException("Unsupported type: " + fieldType.getName());
         }
 
         return collection;
+    }
+
+    private Map<?,?> getMap(ParameterizedType type,
+                            String json, ReaderFacade reader) {
+        final Class<?> keyType = (Class<?>) type.getActualTypeArguments()[0];
+        final Class<?> valueType = (Class<?>) type.getActualTypeArguments()[1];
+        final Map<Object, Object> map = new HashMap<>();
+        final Map<String, String> keyValueMap = parser.parseJson(json);
+
+        keyValueMap.forEach((k, v) -> {
+            if (!ReflectionUtil.isNumber(keyType)) {
+                k = "\"" + k + "\"";
+            }
+
+            Object key = reader.readStringToObject(k, keyType);
+            Object value = reader.readStringToObject(v, valueType);
+            map.put(key, value);
+        });
+
+        return map;
+    }
+
+    private void setFieldObject(Field field, Object instance, Object value) {
+        try {
+            field.set(instance, value);
+        } catch (IllegalAccessException e) {
+            throw new JsonParseException(e);
+        }
     }
 
     private static final class InstanceHolder {
