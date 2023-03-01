@@ -6,8 +6,10 @@ import ru.clevertec.json.reader.api.ClassReader;
 import ru.clevertec.json.reader.api.ReaderFacade;
 import ru.clevertec.json.util.ReflectionUtil;
 
-import java.util.Arrays;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ObjectReader implements ClassReader {
@@ -32,8 +34,15 @@ public class ObjectReader implements ClassReader {
                 })
                 .collect(Collectors.toMap(f -> f, f -> fieldsValue.get(f.getName())))
                 .forEach((key, value) -> {
+                    final Class<?> fieldType = key.getType();
+                    final Object valueObj;
                     try {
-                        key.set(instance, reader.readStringToObject(value, key.getType()));
+                        if (!"null".equals(value) && key.getGenericType() instanceof ParameterizedType type) {
+                            valueObj = getCollection(fieldType, type, value, reader);
+                        }else {
+                            valueObj = reader.readStringToObject(value, key.getType());
+                        }
+                        key.set(instance, valueObj);
                     } catch (IllegalAccessException ex) {
                         throw new JsonParseException(ex);
                     }
@@ -46,6 +55,24 @@ public class ObjectReader implements ClassReader {
                 .anyMatch(c -> c.getParameterCount() == 0);
     }
 
+    private Collection<?> getCollection(Class<?> fieldType,
+                                        ParameterizedType type,
+                                        String json, ReaderFacade reader) {
+        final Class<?> actualTypeArgument = (Class<?>) type.getActualTypeArguments()[0];;
+        final Collection<?> collection;
+        Object[] array;
+        if (ReflectionUtil.isClassInstanceOf(fieldType, List.class)) {
+            array = (Object[]) reader.readStringToObject(json, actualTypeArgument.arrayType());
+            collection = Arrays.stream(array).collect(Collectors.toList());
+        }else if (ReflectionUtil.isClassInstanceOf(fieldType, Set.class)){
+            array = (Object[]) reader.readStringToObject(json, actualTypeArgument.arrayType());
+            collection = Arrays.stream(array).collect(Collectors.toSet());
+        }else {
+            throw new JsonParseException("Unsupported type" + fieldType.getName());
+        }
+
+        return collection;
+    }
 
     private static final class InstanceHolder {
         private static final ObjectReader instance = new ObjectReader();
