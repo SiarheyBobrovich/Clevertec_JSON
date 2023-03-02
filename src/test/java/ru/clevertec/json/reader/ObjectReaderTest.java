@@ -47,7 +47,11 @@ class ObjectReaderTest {
 
     @Test
     void checkGetObjectListObject() {
-        List<Primitive> primitivesList = List.of(Primitive.random(), Primitive.random(), Primitive.random());
+        Primitive p1 = Primitive.builder().aByte((byte)-127).build();
+        Primitive p2 = Primitive.builder().string("Some string").build();
+        Primitive p3 = Primitive.builder().aDouble(123123.123123).build();
+        List<Primitive> primitivesList = List.of(p1, p2, p3);
+
         ObjectWithList expected = ObjectWithList.builder().primitivesList(primitivesList).build();
 
         String json = new JsonMapperImpl().writeObjectAsString(expected);
@@ -92,9 +96,6 @@ class ObjectReaderTest {
                 .build();
 
         String json = new JsonMapperImpl().writeObjectAsString(expected);
-
-        System.out.println(json);
-
         ObjectWithMap actual = objectReader.getObject(json, ObjectWithMap.class, readerFacade);
 
         assertThat(actual).isEqualTo(expected);

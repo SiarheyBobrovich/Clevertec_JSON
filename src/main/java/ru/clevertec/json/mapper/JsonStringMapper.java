@@ -34,7 +34,9 @@ public class JsonStringMapper {
      */
     public String getObject(String json) {
         if ("null".equals(json)) return "null";
-        StringBuilder builder = new StringBuilder();
+        if (json == null || !json.startsWith("{")) throw new JsonFormatException("Incorrect: " + json);
+
+        final StringBuilder builder = new StringBuilder();
         int brackets = 0;
         for (char c : json.toCharArray()) {
             if (c == '{') brackets++;
@@ -42,6 +44,8 @@ public class JsonStringMapper {
             builder.append(c);
             if (brackets == 0) break;
         }
+
+        if (brackets != 0) throw new JsonFormatException("Incorrect \"{\", \"}\" count");
 
         return builder.toString();
     }
@@ -53,6 +57,7 @@ public class JsonStringMapper {
      * @return value of name
      */
     public String getNumber(String json) throws JsonFormatException {
+        if (json == null) throw new JsonFormatException("Must not be null");
         Pattern numberPattern = Pattern.compile(this.numberFormat);
         return getValue(numberPattern, json);
     }
@@ -64,6 +69,7 @@ public class JsonStringMapper {
      * @throws JsonFormatException if value not found
      */
     public String getCharValue(String json) throws JsonFormatException {
+        if (json == null) throw new JsonFormatException("Must not be null");
         Pattern charPattern = Pattern.compile(this.characterFormat);
         return getValue(charPattern, json);
     }
@@ -75,6 +81,7 @@ public class JsonStringMapper {
      * @throws JsonFormatException if value not found
      */
     public String getStringValue(String json) throws JsonFormatException {
+        if (json == null) throw new JsonFormatException("Must not be null");
         Pattern stringPattern = Pattern.compile(this.stringFormat);
         return getValue(stringPattern, json);
     }
@@ -87,6 +94,8 @@ public class JsonStringMapper {
      * @throws JsonFormatException if value not found
      */
     public String getArrayString(String json, int brackets) throws JsonFormatException {
+        if (json == null) throw new JsonFormatException("Must not be null");
+        if (brackets < 1) throw new JsonFormatException("Brackets must be 1 or more");
         String arrayFormat = String.format(this.arrayFormat, brackets, brackets);
         Pattern arrrayPattern = Pattern.compile(arrayFormat);
         return getValue(arrrayPattern, json);
@@ -96,6 +105,6 @@ public class JsonStringMapper {
         return matcher.results()
                 .map(MatchResult::group)
                 .findFirst()
-                .orElseThrow(() -> new JsonFormatException("Json format error"));
+                .orElseThrow(() -> new JsonFormatException("Format error: " + json));
     }
 }

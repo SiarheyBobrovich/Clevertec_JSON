@@ -4,12 +4,10 @@ import lombok.*;
 
 import java.util.Map;
 
-@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
-@ToString
-@Getter
+@Builder
 public class ObjectWithMap {
     private Map<String, Integer> map;
     private Map<Integer, Primitive> primitiveMap;

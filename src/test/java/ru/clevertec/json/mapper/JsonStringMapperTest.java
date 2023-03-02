@@ -1,7 +1,8 @@
 package ru.clevertec.json.mapper;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import ru.clevertec.json.exception.JsonFormatException;
@@ -15,124 +16,208 @@ class JsonStringMapperTest {
     }
 
     @Test
-    void checkGetNumberValueObject1Field() throws JsonFormatException {
+    void checkGetNumberValueObject1Field() {
         String json = "{123}";
         String value = mapper.getNumber(json);
 
-        Assertions.assertThat(value).isEqualTo("123");
+        assertThat(value).isEqualTo("123");
     }
     @Test
-    void checkGetNumberValueObjectNull() throws JsonFormatException {
+    void checkGetNumberNegativeValue() {
+        String json = "dkajwhdka-123.42342E12dawd";
+        String value = mapper.getNumber(json);
+
+        assertThat(value).isEqualTo("-123.42342E12");
+    }
+    @Test
+    void checkGetNumberValueObjectNull() {
         String json = "{null,\"anInt\":321}";
         String value = mapper.getNumber(json);
 
-        Assertions.assertThat(value).isEqualTo("null");
+        assertThat(value).isEqualTo("null");
+    }
+
+    @Test
+    void checkGetNumberValueNull() {
+        assertThatThrownBy(() -> mapper.getNumber(null))
+                .isInstanceOf(JsonFormatException.class);
     }
     @Test
-    void checkGetCharValueDigit() throws JsonFormatException {
+    void checkGetCharValueDigit() {
         String json = "{321,\"aByte\":null}";
         String value = mapper.getCharValue(json);
 
-        Assertions.assertThat(value).isEqualTo("321");
+        assertThat(value).isEqualTo("321");
     }
     @Test
-    void checkGetCharValueHex() throws JsonFormatException {
+    void checkGetCharValueHex() {
         String json = "{\"\\u0032\",\"aByte\":null}";
         String value = mapper.getCharValue(json);
 
-        Assertions.assertThat(value).isEqualTo("\"\\u0032\"");
+        assertThat(value).isEqualTo("\"\\u0032\"");
     }
     @Test
-    void checkGetCharValueSpice() throws JsonFormatException {
+    void checkGetCharValueSpice() {
         String json = "{\"\\b\",\"aByte\":null}";
         String value = mapper.getCharValue(json);
 
-        Assertions.assertThat(value).isEqualTo("\"\\b\"");
+        assertThat(value).isEqualTo("\"\\b\"");
     }
     @Test
-    void checkGetCharValueNull() throws JsonFormatException {
+    void checkGetCharValueRealNull() {
+        assertThatThrownBy(() -> mapper.getCharValue(null))
+                .isInstanceOf(JsonFormatException.class);
+    }
+    @Test
+    @DisplayName("\"null\"")
+    void checkGetCharValueNull() {
         String json = "{\"aChar\":null,\"aByte\":null}";
         String value = mapper.getCharValue(json);
 
-        Assertions.assertThat(value).isEqualTo("null");
+        assertThat(value).isEqualTo("null");
     }
+
     @Test
-    void checkGetCharValueAnySymbol() throws JsonFormatException {
+    void checkGetCharValueAnySymbol() {
         String json = "{\"ﾯ\",\"aByte\":null}";
         String value = mapper.getCharValue(json);
 
-        Assertions.assertThat(value).isEqualTo("\"ﾯ\"");
+        assertThat(value).isEqualTo("\"ﾯ\"");
     }
 
+
+
     @Test
-    void checkGetStringValue() throws JsonFormatException {
+    void checkGetStringValue() {
         String json = "{\"Some String\",\"aByte\":null}";
         String value = mapper.getStringValue(json);
 
-        Assertions.assertThat(value).isEqualTo("\"Some String\"");
+        assertThat(value).isEqualTo("\"Some String\"");
     }
 
     @Test
-    void checkGetStringValueWithQuote() throws JsonFormatException {
+    void checkGetStringNull() {
+        assertThatThrownBy(() -> mapper.getStringValue(null))
+                .isInstanceOf(JsonFormatException.class);
+    }
+
+    @Test
+    void checkGetStringValueWithQuote() {
         String json = "{\"Some\"\" String\",\"aByte\":null}";
         String value = mapper.getStringValue(json);
 
-        Assertions.assertThat(value).isEqualTo("\"Some\"\" String\"");
+        assertThat(value).isEqualTo("\"Some\"\" String\"");
     }
 
     @Test
-    void checkGetStringValueWithQuotes() throws JsonFormatException {
+    void checkGetStringValueWithQuotes() {
         String json = "\"Some\"\"String\"\"\",\"aByte\":null";
         String value = mapper.getStringValue(json);
 
-        Assertions.assertThat(value).isEqualTo("\"Some\"\"String\"\"\"");
+        assertThat(value).isEqualTo("\"Some\"\"String\"\"\"");
     }
     @Nested
     class Array {
         @Test
-        void checkGetArrayValue1() throws JsonFormatException {
+        void checkGetArrayNull() {
+            assertThatThrownBy(() -> mapper.getArrayString(null, 1))
+                    .isInstanceOf(JsonFormatException.class);
+        }
+        @Test
+        void checkGetArrayBracketsZero() {
+            assertThatThrownBy(() -> mapper.getArrayString("[]", 0))
+                    .isInstanceOf(JsonFormatException.class);
+        }
+        @Test
+        void checkGetArrayNegativeBrackets() {
+            assertThatThrownBy(() -> mapper.getArrayString("[[]]", -1))
+                    .isInstanceOf(JsonFormatException.class);
+        }
+        @Test
+        @DisplayName("Integer[]")
+        void checkGetArrayValue1() {
             String json = "[123,324,3123]";
             String value = mapper.getArrayString(json, 1);
 
-            Assertions.assertThat(value).isEqualTo("[123,324,3123]");
+            assertThat(value).isEqualTo("[123,324,3123]");
         }
         @Test
-        void checkGetArrayValue2() throws JsonFormatException {
+        @DisplayName("String[][]")
+        void checkGetArrayValue2() {
             String json = "[[\"One\",\"Two\",\"Three\"],[\"Four\",\"Five\",\"Six\"]]";
             String value = mapper.getArrayString(json, 2);
 
-            Assertions.assertThat(value)
+            assertThat(value)
                     .isEqualTo("[[\"One\",\"Two\",\"Three\"],[\"Four\",\"Five\",\"Six\"]]");
         }
         @Test
-        void checkGetArrayValue3() throws JsonFormatException {
+        @DisplayName("String[][][]")
+        void checkGetArrayValue3() {
             String json = "[[[\"0\",\"1\"],[\"2\",\"3\"]],[[\"4\",\"5\"],[\"6\",\"7\"]]]";
             String value = mapper.getArrayString(json, 3);
 
-            Assertions.assertThat(value).isEqualTo("[[[\"0\",\"1\"],[\"2\",\"3\"]],[[\"4\",\"5\"],[\"6\",\"7\"]]]");
+            assertThat(value)
+                    .isEqualTo("[[[\"0\",\"1\"],[\"2\",\"3\"]],[[\"4\",\"5\"],[\"6\",\"7\"]]]");
         }
         @Test
-        void checkGetArrayObjectValue1() throws JsonFormatException {
+        @DisplayName("field = Integer[]")
+        void checkGetArrayInObject1() {
             String json = "{\"aBytes\":[123,324,3123]}";
             String value = mapper.getArrayString(json, 1);
 
-            Assertions.assertThat(value).isEqualTo("[123,324,3123]");
+            assertThat(value).isEqualTo("[123,324,3123]");
         }
         @Test
-        void checkGetArrayObjectValue2() throws JsonFormatException {
+        @DisplayName("field = String[][]")
+        void checkGetArrayInObject2() {
             String json = "{\"aByte\":123,\"aBytes\":[[\"One\",\"Two\",\"Three\"],[\"Four\",\"Five\",\"Six\"]]}";
             String value = mapper.getArrayString(json, 2);
 
-            Assertions.assertThat(value)
+            assertThat(value)
                     .isEqualTo("[[\"One\",\"Two\",\"Three\"],[\"Four\",\"Five\",\"Six\"]]");
         }
         @Test
-        void checkGetArrayObjectValue3() throws JsonFormatException {
+        @DisplayName("Array = String[][][]")
+        void checkGetArrayObject3() {
             String json = "{[[[\"0\",\"1\"],[\"2\",\"3\"]],[[\"4\",\"5\"],[\"6\",\"7\"]]]}";
             String value = mapper.getArrayString(json, 3);
 
-            Assertions.assertThat(value)
+            assertThat(value)
                     .isEqualTo("[[[\"0\",\"1\"],[\"2\",\"3\"]],[[\"4\",\"5\"],[\"6\",\"7\"]]]");
         }
+    }
+
+    @Test
+    void checkGetObjectNull() {
+        String actual = mapper.getObject("null");
+        assertThat(actual)
+                .isEqualTo("null");
+    }
+
+    @Test
+    void checkGetObject() {
+        String actual = mapper.getObject("{\"integer\":123,\"other\":{\"bytes:[1,2,3]\"}}");
+        assertThat(actual)
+                .isEqualTo("{\"integer\":123,\"other\":{\"bytes:[1,2,3]\"}}");
+    }
+    @Test
+    @DisplayName("Not start with {")
+    void checkGetObjectThrow() {
+        String json = "\"integer\":123,\"other\":{\"bytes:[1,2,3]\"}";
+        assertThatThrownBy(() -> mapper.getObject(json))
+                .isInstanceOf(JsonFormatException.class);
+    }
+
+    @Test
+    @DisplayName("Incorrect {} count")
+    void checkGetObjectThrow2() {
+        String json = "{\"integer\":123,\"other\":{\"bytes:[1,2,3]\"}";
+        assertThatThrownBy(() -> mapper.getObject(json))
+                .isInstanceOf(JsonFormatException.class);
+    }
+    @Test
+    void checkGetObjectJsonNull() {
+        assertThatThrownBy(() -> mapper.getObject(null))
+                .isInstanceOf(JsonFormatException.class);
     }
 }

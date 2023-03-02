@@ -8,8 +8,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-@EqualsAndHashCode
-@ToString
+@Data
 public class ObjectWithList {
     private List<Integer> integers;
     private Set<Integer> integerSet;

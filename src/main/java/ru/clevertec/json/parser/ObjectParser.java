@@ -24,9 +24,13 @@ public class ObjectParser {
     /**
      * Parsing json and return field name = value map
      * @param json object as JSON
+     * @throws JsonFormatException if json is null <br/>
+     *                             json is not an object <br/>
+     *                             name without ""
      * @return All fields with value
      */
     public Map<String, String> parseJson(String json) {
+        if (json == null) throw new JsonFormatException("Json must not be null");
         if (!(json.startsWith("{") && json.endsWith("}"))) {
             throw new JsonParseException("not an object");
         }
@@ -111,7 +115,7 @@ public class ObjectParser {
     }
 
     private boolean isNumber(char c) {
-        return c >='0' && c <='9';
+        return c >='0' && c <='9' || c =='-';
     }
     private boolean isString(char c) {
         return c =='"';

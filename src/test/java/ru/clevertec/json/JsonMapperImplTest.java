@@ -28,12 +28,11 @@ class JsonMapperImplTest {
     class Write {
         @Test
         void checkWriteObjectAsStringNull() throws JsonProcessingException {
-            Integer expected = null;
-            String actualJson = jsonMapper.writeObjectAsString(expected);
+            String actualJson = jsonMapper.writeObjectAsString(null);
             Integer actual = mapper.readValue(actualJson, Integer.class);
 
             assertThat(actual)
-                    .isEqualTo(expected);
+                    .isEqualTo(null);
         }
 
         @Test

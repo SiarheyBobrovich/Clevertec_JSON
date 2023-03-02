@@ -28,7 +28,7 @@ public class CharacterReader implements ClassReader {
     public <T> T getObject(String json, Class<T> obj, ReaderFacade reader) {
         if ("null".equals(json) || json == null) return null;
         final Character result;
-        final String jsonWithoutBrackets = json.substring(1, json.length() - 1);
+        final String jsonWithoutBrackets = json.length() == 1 ? json : json.substring(1, json.length() - 1);
 
         if (isSpace(jsonWithoutBrackets))
             result = chars.get(jsonWithoutBrackets);
